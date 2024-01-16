@@ -1,6 +1,8 @@
 import React,{useState} from 'react';
 import User from '../models/User';
 
+// receives three props, each being a function action state passed down from its parent
+// So in summary, this child component uses the 'action states' (which are actually functions) provided via props to interact and update the state maintained in a parent component.
 interface Props {
 	register(user:User):void;
 	login(user:User):void;
@@ -19,6 +21,7 @@ const LoginPage = (props:Props) => {
 		password:""
 	})
 	
+	// three main events the component responds to
 	const onChange = (event:React.ChangeEvent<HTMLInputElement>) => {
 		setState((state) => {
 			return {
@@ -27,7 +30,6 @@ const LoginPage = (props:Props) => {
 			}
 		})
 	}
-	
 	const onRegister = (event:React.SyntheticEvent) => {
 		event.preventDefault();
 		if(state.username.length < 4 || state.password.length < 8) {
@@ -37,7 +39,6 @@ const LoginPage = (props:Props) => {
 		let user = new User(state.username,state.password);
 		props.register(user);
 	}
-	
 	const onLogin = (event:React.SyntheticEvent) => {
 		event.preventDefault();
 		if(state.username.length < 4 || state.password.length < 8) {

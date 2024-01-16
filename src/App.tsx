@@ -8,10 +8,16 @@ import {Routes,Route,Navigate} from 'react-router-dom';
 
 function App() {
 
+	// get actions
 	const action = useAction();
 	
 	let messageArea = <h4 style={{"height":50,"textAlign":"center"}}></h4>
 	
+	// renders different sub-components based on the current action state
+	
+	// By sending action states to child components, the parent component (App in this case) provides the children with the ability to interact with and update the context provided by the parent.
+	// For example, in your code navigation bar component Navbar receives a logout function action.logout. When this function is invoked in the Navbar component, it will change the state in the App component causing a logout.
+	// Similarly, other components like ShoppingList, ShoppingForm and LoginPage receive different actions that can be invoked to update the state inside the App function.
 	if(action.state.loading) {
 		messageArea = <h4 style={{"height":50,"textAlign":"center"}}>Loading ...</h4>
 	}

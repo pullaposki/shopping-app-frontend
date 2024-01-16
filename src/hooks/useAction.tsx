@@ -14,6 +14,7 @@ interface Token {
 
 const useAction = () => {
 	
+	// AppState represents the essential state of your application
 	const [state,setState] = useState<AppState>({
 		list:[],
 		isLogged:false,
@@ -28,20 +29,23 @@ const useAction = () => {
 		action:""
 	})
 	
-	//STATE HELPERS
-	
+	//#region State Helpers
+	// these functions are facilitating the state management of the application, by providing a way to update and persist the state of the application
+	// sessionStorage object stores data for only one session
 	const saveToStorage = (state:AppState) => {
 		sessionStorage.setItem("state",JSON.stringify(state));
 	}
 	
+	// pre-existing state saved to sessionStorage will be reloaded into the state of this component when it is loaded
 	useEffect(() => {
-		let temp = sessionStorage.getItem("state");
+		let temp = sessionStorage.getItem("state");		
 		if(temp) {
 			let state:AppState = JSON.parse(temp);
 			setState(state);
 		}
 	},[])
 	
+	// set state's loading property
 	const setLoading = (loading:boolean) => {
 		setState((state) => {
 			return {
@@ -52,6 +56,7 @@ const useAction = () => {
 		})
 	}
 	
+	// set state's error property
 	const setError = (error:string) => {
 		setState((state) => {
 			let tempState = {
@@ -63,6 +68,7 @@ const useAction = () => {
 		})
 	}
 	
+	// set state's user property
 	const setUser = (user:string) => {
 		setState((state) => {
 			let tempState = {
@@ -73,7 +79,15 @@ const useAction = () => {
 			return tempState;
 		})
 	}
+	//#endregion
 	
+	//#region State Machine
+	// Triggers when url request state is changed
+	
+	// All the interactions with the state and storage are done using the setState and saveToStorage functions. 
+	// Different parts of the state (isLogged, list, token, error, etc.) are set based on the urlRequest.action and the server's responses. 
+	// The setState function updates the state with a function that accepts the previous state and returns the updated state. 
+	// Then it saves this updated state to storage.
 	useEffect(() => {
 		
 		const fetchData = async () => {
@@ -84,11 +98,16 @@ const useAction = () => {
 				console.log("Server sent no response!");
 				return;
 			}
+			
+			// Handle action of request
 			if(response.ok) {
 				switch(urlRequest.action) {
+					
+					// If the action is 'getlist', it parses the response as JSON and cast it to a ShoppingItem[], updates the state with this list, and saves this state to storage.
 					case "getlist":
 						let temp = await response.json();
 						let list:ShoppingItem[] = temp as ShoppingItem[];
+						
 						setState((state) => {
 							let tempState = {
 								...state,
@@ -98,17 +117,24 @@ const useAction = () => {
 							return tempState;
 						})
 						return;
+						
+					// calls getList() with the current state's token	
 					case "additem":
 					case "removeitem":
 					case "edititem":
 						getList(state.token);
 						return;
+						
+						
 					case "register":
 						setError("Register success");
 						return;
+						
+					// parses the response as a token, updates the state indicating the user is logged in and saves this state to storage. Then it retrieves the list
 					case "login":
 						let token = await response.json();
 						let data = token as Token;
+						
 						setState((state) => {
 							let tempState = {
 								...state,
@@ -120,6 +146,8 @@ const useAction = () => {
 						})
 						getList(data.token);
 						return;
+						
+						
 					case "logout":
 						let tempState = {
 							list:[],
@@ -137,6 +165,9 @@ const useAction = () => {
 				
 				}
 			} else {
+				
+				// For responses that are not OK (response.ok == false), it checks for a 403 status and handles it by logging the user out. 
+				// For other statuses, it sets an appropriate error message based on the response's status and status text, and the urlRequest.actio
 				if(response.status === 403) {
 					let tempState = {
 						list:[],
@@ -186,7 +217,10 @@ const useAction = () => {
 		fetchData();
 		
 	},[urlRequest]);
+	//#endregion
 	
+	//#region Action Triggers
+	// set request and trigger corresponding action
 	const getList = (token:string) => {
 		setUrlRequest({
 			request:new Request("/api/shopping",{
@@ -270,6 +304,8 @@ const useAction = () => {
 			action:"logout"
 		})
 	}
+	//#endregion
+	
 	return {state,getList,add,remove,edit,register,login,logout,setError}
 }
 
